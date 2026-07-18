@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -24,6 +26,7 @@ public class AuthService {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(encoder.encode(request.getPassword()))
+                .createdAt(LocalDateTime.now())
                 .role("USER").build();
         userRepository.save(newUser);
         return "User registered successfully";
