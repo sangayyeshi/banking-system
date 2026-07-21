@@ -3,6 +3,8 @@ package com.banking.accountservice.controller;
 import com.banking.accountservice.dto.AccountRequest;
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.service.AccountService;
+
+import com.banking.common.Core.AccountUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +33,12 @@ public class AccountController {
      public AccountResponse getAccountByAccountNumber(@Valid @PathVariable("accountNumber") String accountNumber) {
         return accountService.getAccountByAccountNumber(accountNumber);
 
-    }   @DeleteMapping("/{id}")
+    }
+    @PutMapping("/{id}")
+    public AccountResponse updateAccount(@PathVariable("id") Long id, @Valid @RequestBody AccountUpdateRequest accountRequest) {
+        return accountService.updateAccount(id,accountRequest);
+    }
+    @DeleteMapping("/{id}")
        public void deleteAccountById(@Valid @PathVariable("id") Long accountId) {
         accountService.deleteAccountById(accountId);
     }

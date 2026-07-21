@@ -4,6 +4,8 @@ package com.banking.accountservice.service;
 import com.banking.accountservice.dto.AccountRequest;
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.repo.AccountRepo;
+import com.banking.common.Core.AccountUpdateRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,5 @@ public interface AccountService {
      AccountResponse getAccountByEmail(String email);
      AccountResponse getAccountByAccountNumber(String accountNumber);
      void deleteAccountById(Long id);
-
-
+    AccountResponse updateAccount(Long id, @Valid AccountUpdateRequest accountRequest);
 }

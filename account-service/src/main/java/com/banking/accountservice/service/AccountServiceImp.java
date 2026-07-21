@@ -3,8 +3,9 @@ package com.banking.accountservice.service;
 import com.banking.accountservice.dto.AccountRequest;
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.entity.Account;
-import com.banking.accountservice.enumrate.AccountStatus;
+import com.banking.common.enumrate.AccountStatus;
 import com.banking.accountservice.repo.AccountRepo;
+import com.banking.common.Core.AccountUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +77,15 @@ public class AccountServiceImp  implements AccountService {
     @Override
     public void deleteAccountById(Long id) {
        accountRepo.deleteById(id);
+    }
+
+    @Override
+    public AccountResponse updateAccount(Long id, AccountUpdateRequest accountRequest) {
+        Account account = accountRepo.findById(id).orElseThrow(
+                ()-> new RuntimeException("account not found"));
+        account.setBalance(accountRequest.getAmount());
+        Account updatedAccount = accountRepo.save(account);
+        return map(updatedAccount);
     }
 
 

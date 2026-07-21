@@ -1,4 +1,4 @@
-package com.banking.accountservice.enumrate;
+package com.banking.common.enumrate;
 
 public enum AccountStatus  {
 

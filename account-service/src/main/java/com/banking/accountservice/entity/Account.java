@@ -1,6 +1,6 @@
 package com.banking.accountservice.entity;
 
-import com.banking.accountservice.enumrate.AccountStatus;
+import com.banking.common.enumrate.AccountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
