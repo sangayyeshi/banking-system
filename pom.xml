@@ -23,12 +23,12 @@
     <module>account-service</module>
     <module>transaction-service</module>
     <module>common</module>
+    <module>message-service</module>
+
     <!-- <module>api-gateway</module> -->
   </modules>
 
-  <!-- =========================
-       Parent
-  ========================== -->
+
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -36,9 +36,7 @@
     <relativePath/>
   </parent>
 
-  <!-- =========================
-       Properties
-  ========================== -->
+
   <properties>
 
     <java.version>21</java.version>
@@ -55,9 +53,9 @@
 
   </properties>
 
-  <!-- =========================
+  <!--
        Dependency Management
-  ========================== -->
+  -->
   <dependencyManagement>
 
     <dependencies>
