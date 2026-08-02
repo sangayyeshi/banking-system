@@ -1,23 +1,25 @@
 server:
   port: 8888
 
+
 spring:
   application:
     name: config-server
 
-  profiles:
-    active: native
 
   cloud:
     config:
       server:
-        native:
-          search-locations: classpath:/config
+        git:
+          uri: https://github.com/sangayyeshi/bank-config-repo.git
+          default-label: main
 
-  security:
-    user:
-      name: config-admin
-      password: config@123
+
+security:
+  user:
+    name: config-admin
+    password: config@123
+
 
 eureka:
   client:
