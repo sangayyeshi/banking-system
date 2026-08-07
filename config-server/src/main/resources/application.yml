@@ -4,17 +4,32 @@ server:
 spring:
   application:
     name: config-server
+
   cloud:
     config:
       server:
         git:
           uri: https://github.com/sangayyeshi/bank-config-repo.git
           default-label: main
+          clone-on-start: true
+          timeout: 10
 
 security:
   user:
-    name: ${CONFIG_SERVER_USERNAME:config-admin}
+    username: ${CONFIG_SERVER_USERNAME:config-admin}
     password: ${CONFIG_SERVER_PASSWORD}
+
+
+management:
+  endpoint:
+    web:
+      exposure:
+        include:
+          -health
+          -info
+          -metrics
+
+
 
 eureka:
   client:
