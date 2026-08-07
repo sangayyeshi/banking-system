@@ -5,6 +5,12 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.4.10</version>
+    <relativePath/>
+  </parent>
 
   <groupId>com.sanden</groupId>
   <artifactId>bankingsystem</artifactId>
@@ -27,36 +33,18 @@
     <module>api-gateway</module>
   </modules>
 
-
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.10</version>
-    <relativePath/>
-  </parent>
-
-
   <properties>
-
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
 
     <spring.cloud.version>2024.0.0</spring.cloud.version>
-
+    <spring.boot.version>3.4.10</spring.boot.version>
     <lombok.version>1.18.30</lombok.version>
-
     <mysql.version>8.4.0</mysql.version>
-
     <jjwt.version>0.11.5</jjwt.version>
-
     <bouncycastle.version>1.78</bouncycastle.version>
-
   </properties>
-
-  <!--
-       Dependency Management
-  -->
   <dependencyManagement>
-
     <dependencies>
 
       <!-- Spring Cloud BOM -->

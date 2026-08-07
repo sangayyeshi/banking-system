@@ -8,4 +8,4 @@ spring:
   cloud:
     config:
       username: ${CONFIG_SERVER_USERNAME:config-admin}
-      password: ${CONFIG_SERVER_PASSWORD}
+      password: ${CONFIG_SERVER_PASSWORD:root}

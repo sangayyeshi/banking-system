@@ -2,13 +2,14 @@
 spring:
   application:
     name: message-service
-
-
-    profiles:
-      active: ${SPRING_PROFILES_ACTIVE:dev}
-
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
     config:
-      import: optional:configserver:http://localhost:8888
+      username: ${CONFIG_SERVER_USERNAME:config-admin}
+      password: ${CONFIG_SERVER_PASSWORD:root}
 
 #  datasource:
 #    url: jdbc:mysql://localhost:3306/notification_db
