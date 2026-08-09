@@ -10,6 +10,18 @@ spring:
       username: ${CONFIG_SERVER_USERNAME:config-admin}
       password: ${CONFIG_SERVER_PASSWORD:root}
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
       routes:
         - id: auth-service
           uri: lb://auth-service
@@ -23,7 +35,6 @@ spring:
           uri: lb://transaction-service
           predicates:
             - Path=/api/transactions/**
-
         - id: message-service
           uri: lb://message-service
           predicates:
