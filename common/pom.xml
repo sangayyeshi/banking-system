@@ -17,7 +17,7 @@
 
     <artifactId>common</artifactId>
 
-    <name>common</name>
+
     <description>Common classes shared between microservices</description>
 
     <dependencies>
