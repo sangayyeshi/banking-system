@@ -1,0 +1,139 @@
+services:
+
+  banking-mysql:
+    image: mysql:8.4
+    container_name: banking-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Xangay@12
+    ports:
+      - "3307:3306"
+    networks:
+      - banking-network
+
+  config-server:
+    image: config-server:1.0
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - banking-network
+
+  eureka-service:
+    image: eureka-service:latest
+    container_name: eureka-service
+    ports:
+      - "8761:8761"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+
+  auth-service:
+    image: auth-service:1.0
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+      DB_HOST: banking-mysql
+      DB_USERNAME: root
+      DB_PASSWORD: Xangay@12
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+      - eureka-service
+      - banking-mysql
+
+  account-service:
+    image: account-service:1.0
+    container_name: account-service
+    ports:
+      - "8082:8082"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+      DB_HOST: banking-mysql
+      DB_USERNAME: root
+      DB_PASSWORD: Xangay@12
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+      - eureka-service
+      - banking-mysql
+
+  transaction-service:
+    image: transaction-service:1.0
+    container_name: transaction-service
+    ports:
+      - "8083:8083"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+      DB_HOST: banking-mysql
+      DB_USERNAME: root
+      DB_PASSWORD: Xangay@12
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+      - eureka-service
+      - banking-mysql
+
+  message-service:
+    image: message-service:1.0
+    container_name: message-service
+    ports:
+      - "8084:8084"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+      DB_HOST: banking-mysql
+      DB_USERNAME: root
+      DB_PASSWORD: Xangay@12
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      MAIL_USERNAME: f9653b4c4bea45
+      MAIL_PASSWORD: ff41aa08b838d3
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+      - eureka-service
+      - banking-mysql
+
+  api-gateway:
+    image: api-gateway:1.0
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_USERNAME: config-admin
+      CONFIG_SERVER_PASSWORD: root
+      EUREKA_URL: http://eureka-service:8761/eureka/
+    networks:
+      - banking-network
+    depends_on:
+      - config-server
+      - eureka-service
+      - auth-service
+      - account-service
+      - transaction-service
+      - message-service
+
+networks:
+  banking-network:
+    driver: bridge
