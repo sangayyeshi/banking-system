@@ -5,10 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="067eb2d8-7b6e-4b51-9c5f-f5813a82bd02" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/banking/common/expections/AccountNotActiveException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/banking/common/expections/BusinessException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/banking/common/expections/InvalidAmountException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/banking/common/expections/ServiceUnavailableException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/com/banking/common/expections/TransactionFailedException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/expection/ErrorResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/expection/GlobalExceptionHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/message-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/message-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/message-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/message-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/controller/TransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/controller/TransactionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/dto/TransactionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/dto/TransactionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/service/TransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/transaction-service/src/main/java/com/banking/transactionservice/service/TransactionService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +27,7 @@
       <list>
         <option value="Enum" />
         <option value="Interface" />
+        <option value="Exception" />
         <option value="Class" />
       </list>
     </option>

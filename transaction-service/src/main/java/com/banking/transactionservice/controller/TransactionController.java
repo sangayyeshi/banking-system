@@ -19,4 +19,14 @@ public class TransactionController {
     public TransactionResponse deposit( @Valid @RequestBody TransactionRequest transactionRequest) {
         return transactionService.deposit(transactionRequest);
     }
+/*
+* to do list
+* withdraw
+* transfer : it must handle the multiple transaction in one request
+*
+* */
+
+    //withdraw
+
+
 }
