@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -42,6 +43,16 @@ AccountController {
     @DeleteMapping("/{id}")
        public void deleteAccountById(@Valid @PathVariable("id") Long accountId) {
         accountService.deleteAccountById(accountId);
+    }
+    @PutMapping("{id}/debit")
+    public AccountResponse debitAccount( @PathVariable Long id,@RequestParam BigDecimal amount) {
+        return accountService.debit(id, amount);
+
+    }
+    @PutMapping("{id}/credit")
+    public AccountResponse creditAccount( @PathVariable Long id,@RequestParam BigDecimal amount) {
+        return accountService.credit(id, amount);
+
     }
 
 

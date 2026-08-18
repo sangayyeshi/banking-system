@@ -9,16 +9,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
 public interface AccountService {
     // create the method signature
+     AccountResponse debit(Long id , BigDecimal amount);
+     AccountResponse credit(Long id , BigDecimal amount);
      AccountResponse createAccount(AccountRequest accountRequest);
      List<AccountResponse> getAllAccounts();
      AccountResponse getAccountById(Long id);
      AccountResponse getAccountByEmail(String email);
      AccountResponse getAccountByAccountNumber(String accountNumber);
      void deleteAccountById(Long id);
-    AccountResponse updateAccount(Long id, @Valid AccountUpdateRequest accountRequest);
+     AccountResponse updateAccount(Long id, @Valid AccountUpdateRequest accountRequest);
 }

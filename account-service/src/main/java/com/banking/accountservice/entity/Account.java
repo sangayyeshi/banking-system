@@ -29,5 +29,8 @@ public class Account {
      private AccountStatus accountStatus;
      private LocalDateTime createdAt;
      private LocalDateTime updatedAt;
+     // adding version for not to get locking
+     @Version
+     private Long version;
 
 }

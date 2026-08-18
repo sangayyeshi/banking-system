@@ -3,6 +3,7 @@ package com.banking.transactionservice.controller;
 import com.banking.transactionservice.dto.TransactionRequest;
 import com.banking.transactionservice.dto.TransactionResponse;
 import com.banking.transactionservice.service.TransactionService;
+import jakarta.persistence.Column;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,14 +20,15 @@ public class TransactionController {
     public TransactionResponse deposit( @Valid @RequestBody TransactionRequest transactionRequest) {
         return transactionService.deposit(transactionRequest);
     }
-/*
-* to do list
-* withdraw
-* transfer : it must handle the multiple transaction in one request
-*
-* */
-
-    //withdraw
-
+@   PostMapping("/withdraw")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TransactionResponse withdraw (@Valid @RequestBody TransactionRequest transactionRequest) {
+        return transactionService.withdraw(transactionRequest);
+}
+    @PostMapping("/transfer")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TransactionResponse transfer(@Valid @RequestBody TransactionRequest transactionRequest) {
+        return transactionService.transfer(transactionRequest);
+    }
 
 }

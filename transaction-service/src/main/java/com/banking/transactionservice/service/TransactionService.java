@@ -96,44 +96,66 @@ public class TransactionService {
 
     // 3. Transfer
     public TransactionResponse transfer(TransactionRequest transactionRequest) {
-        // Get the account
-        AccountResponse fromAccount = accountClient.getAccountById(transactionRequest.getAccountId());
-        //check the balance
-        if (fromAccount.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
-            throw new InsufficientBalanceException("Insufficient Balance");
+
+        Long fromAccountId = transactionRequest.getAccountId();
+        Long toAccountId = transactionRequest.getReceiverAccountId();
+        BigDecimal amount = transactionRequest.getAmount();
+
+        // Prevent transferring to the same account
+        if (fromAccountId.equals(toAccountId)) {
+            throw new IllegalArgumentException(
+                    "Sender and receiver accounts cannot be the same"
+            );
         }
-        // get the designation account
-        AccountResponse toAccount = accountClient.getAccountById(transactionRequest.getReceiverAccountId());
-        // calculate the new balance
-        BigDecimal fromNewAccount = fromAccount.getBalance().subtract(transactionRequest.getAmount());
-        BigDecimal toNewAccount = toAccount.getBalance().add(transactionRequest.getAmount());
-        // Update source account
-        AccountUpdateRequest updateRequest = AccountUpdateRequest.builder()
-                .amount(fromNewAccount)
-                .build();
-        accountClient.updateAccount(fromAccount.getId(), updateRequest);
-        //Update designation account
-        AccountUpdateRequest accountUpdateRequest = AccountUpdateRequest
-                .builder()
-                .amount(toNewAccount)
-                .build();
-        accountClient.updateAccount(toAccount.getId(), accountUpdateRequest);
-        // save the transaction
-        Transaction transaction = Transaction.builder()
-                .accountId(fromAccount.getId())
-                .type(TransactionType.TRANSFER)
-                .amount(transactionRequest.getAmount())
-                .description(transactionRequest.getDescription())
-                .createdAt(LocalDateTime.now())
-                .build();
-        Transaction saved = transactionRepo.save(transaction);
-        return map(saved);
+
+        // 1. Debit sender atomically
+        AccountResponse fromAccount =
+                accountClient.debit(fromAccountId, amount);
+
+        try {
+
+            // 2. Credit receiver
+            AccountResponse toAccount =
+                    accountClient.credit(toAccountId, amount);
+
+            // 3. Create transaction record
+            Transaction transaction =
+                    Transaction.builder()
+                            .accountId(fromAccount.getId())
+                            .receiverAccountId(toAccount.getId())
+                            .type(TransactionType.TRANSFER)
+                            .amount(amount)
+                            .description(transactionRequest.getDescription())
+                            .createdAt(LocalDateTime.now())
+                            .build();
+
+            Transaction saved =
+                    transactionRepo.save(transaction);
+
+            return map(saved);
+
+        } catch (Exception e) {
+
+            // Receiver credit failed.
+            // Compensate by returning the money to sender.
+            try {
+                accountClient.credit(fromAccountId, amount);
+            } catch (Exception compensationException) {
+                compensationException.printStackTrace();
+            }
+
+            throw new RuntimeException(
+                    "Transfer failed and compensation was attempted",
+                    e
+            );
+        }
     }
 
     public TransactionResponse map(Transaction transaction) {
         return TransactionResponse.builder()
                 .id(transaction.getId())
                 .accountId(transaction.getAccountId())
+                .receiverAccountId(transaction.getReceiverAccountId())
                 .amount(transaction.getAmount())
                 .description(transaction.getDescription())
                 .createdAt(transaction.getCreatedAt())

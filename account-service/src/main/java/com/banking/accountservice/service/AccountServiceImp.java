@@ -6,9 +6,13 @@ import com.banking.accountservice.entity.Account;
 import com.banking.common.enumrate.AccountStatus;
 import com.banking.accountservice.repo.AccountRepo;
 import com.banking.common.Core.AccountUpdateRequest;
+import com.banking.common.expections.AccountNotActiveException;
+import com.banking.common.expections.InsufficientBalanceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +23,26 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccountServiceImp  implements AccountService {
     private final AccountRepo accountRepo;
+    @Transactional
+    @Override
+    public AccountResponse debit(Long id, BigDecimal amount) {
+         int update = accountRepo.debit(id, amount);
+         //checking   the  amount
+        if (update == 0) {
+            throw  new InsufficientBalanceException("Insufficient balance");
+        }
+        return getAccountById(id);
+    }
+    @Transactional
+    @Override
+    public AccountResponse credit(Long id, BigDecimal amount) {
+         int update = accountRepo.credit(id, amount);
+         if (update == 0) {
+              throw new AccountNotActiveException("Account not active");
+         }
+        return getAccountById(id);
+    }
+
     @Override
     public AccountResponse createAccount(AccountRequest accountRequest) {
 
@@ -78,7 +102,7 @@ public class AccountServiceImp  implements AccountService {
     public void deleteAccountById(Long id) {
        accountRepo.deleteById(id);
     }
-
+//  update account after the transaction happen
     @Override
     public AccountResponse updateAccount(Long id, AccountUpdateRequest accountRequest) {
         Account account = accountRepo.findById(id).orElseThrow(
