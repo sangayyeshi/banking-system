@@ -47,14 +47,12 @@ public class TransactionService {
     public TransactionResponse withdraw(TransactionRequest transactionRequest) {
 
         // Get the account
-        AccountResponse accountResponse =
-                accountClient.getAccountById(
+        AccountResponse accountResponse = accountClient.getAccountById(
                         transactionRequest.getAccountId()
                 );
 
         // Check sufficient balance
-        if (accountResponse.getBalance()
-                .compareTo(transactionRequest.getAmount()) < 0) {
+        if (accountResponse.getBalance().compareTo(transactionRequest.getAmount()) < 0) {
 
             throw new InsufficientBalanceException(
                     "Insufficient balance"
@@ -62,24 +60,20 @@ public class TransactionService {
         }
 
         // Calculate new balance
-        BigDecimal newBalance =
-                accountResponse.getBalance()
-                        .subtract(transactionRequest.getAmount());
+        BigDecimal newBalance = accountResponse.getBalance().subtract(transactionRequest.getAmount());
 
         // Update account
         AccountUpdateRequest accountUpdateRequest =
                 AccountUpdateRequest.builder()
                         .amount(newBalance)
                         .build();
-
         accountClient.updateAccount(
                 accountResponse.getId(),
                 accountUpdateRequest
         );
 
         // Create transaction
-        Transaction transaction =
-                Transaction.builder()
+        Transaction transaction = Transaction.builder()
                         .accountId(accountResponse.getId())
                         .type(TransactionType.WITHDRAW)
                         .amount(transactionRequest.getAmount())
@@ -88,8 +82,7 @@ public class TransactionService {
                         .build();
 
         // Save transaction
-        Transaction saved =
-                transactionRepo.save(transaction);
+        Transaction saved = transactionRepo.save(transaction);
 
         return map(saved);
     }
@@ -97,58 +90,53 @@ public class TransactionService {
     // 3. Transfer
     public TransactionResponse transfer(TransactionRequest transactionRequest) {
 
-        Long fromAccountId = transactionRequest.getAccountId();
-        Long toAccountId = transactionRequest.getReceiverAccountId();
-        BigDecimal amount = transactionRequest.getAmount();
+        // Get sender and receiver
+        AccountResponse fromAccount = accountClient.getAccountById(transactionRequest.getAccountId());
 
-        // Prevent transferring to the same account
-        if (fromAccountId.equals(toAccountId)) {
+        AccountResponse toAccount = accountClient.getAccountById(
+                        transactionRequest.getReceiverAccountId()
+                );
+
+        // Prevent transfer to the same account
+        if (fromAccount.getId().equals(toAccount.getId())) {
             throw new IllegalArgumentException(
-                    "Sender and receiver accounts cannot be the same"
+                    "Cannot transfer money to the same account"
             );
         }
 
-        // 1. Debit sender atomically
-        AccountResponse fromAccount =
-                accountClient.debit(fromAccountId, amount);
+        // Atomic debit
+        // The database guarantees:
+        // balance >= amount
+        accountClient.debit(fromAccount.getId(), transactionRequest.getAmount()
+        );
 
         try {
 
-            // 2. Credit receiver
-            AccountResponse toAccount =
-                    accountClient.credit(toAccountId, amount);
-
-            // 3. Create transaction record
-            Transaction transaction =
-                    Transaction.builder()
-                            .accountId(fromAccount.getId())
-                            .receiverAccountId(toAccount.getId())
-                            .type(TransactionType.TRANSFER)
-                            .amount(amount)
-                            .description(transactionRequest.getDescription())
-                            .createdAt(LocalDateTime.now())
-                            .build();
-
-            Transaction saved =
-                    transactionRepo.save(transaction);
-
-            return map(saved);
+            // Atomic credit
+            accountClient.credit(toAccount.getId(), transactionRequest.getAmount()
+            );
 
         } catch (Exception e) {
 
-            // Receiver credit failed.
-            // Compensate by returning the money to sender.
-            try {
-                accountClient.credit(fromAccountId, amount);
-            } catch (Exception compensationException) {
-                compensationException.printStackTrace();
-            }
-
-            throw new RuntimeException(
-                    "Transfer failed and compensation was attempted",
-                    e
+            accountClient.credit(fromAccount.getId(), transactionRequest.getAmount()
             );
+
+            throw e;
         }
+
+        // Save transaction
+        Transaction transaction =
+                Transaction.builder()
+                        .accountId(fromAccount.getId())
+                        .receiverAccountId(toAccount.getId())
+                        .type(TransactionType.TRANSFER)
+                        .amount(transactionRequest.getAmount())
+                        .description(transactionRequest.getDescription())
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+        Transaction saved = transactionRepo.save(transaction);
+        return map(saved);
     }
 
     public TransactionResponse map(Transaction transaction) {

@@ -19,6 +19,12 @@ services:
       - "8888:8888"
     networks:
       - banking-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u", "config-admin:root", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   eureka-service:
     image: eureka-service:latest
@@ -69,10 +75,15 @@ services:
       EUREKA_URL: http://eureka-service:8761/eureka/
     networks:
       - banking-network
+      # it fixed which service  run first and which depends on it
     depends_on:
-      - config-server
-      - eureka-service
-      - banking-mysql
+     config-server:
+       condition: service_healthy
+     eureka-service:
+       condition: service_started
+
+     banking-mysql:
+       condition: service_started
 
   transaction-service:
     image: transaction-service:1.0
@@ -90,9 +101,12 @@ services:
     networks:
       - banking-network
     depends_on:
-      - config-server
-      - eureka-service
-      - banking-mysql
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      banking-mysql:
+        condition: service_started
 
   message-service:
     image: message-service:1.0
