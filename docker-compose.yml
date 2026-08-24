@@ -4,11 +4,11 @@ services:
     image: mysql:8.4
     container_name: banking-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: Xangay@12
-    volumes:
-        - mysql_data:/var/lib/mysql
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
     networks:
       - banking-network
 
@@ -17,14 +17,26 @@ services:
     container_name: config-server
     ports:
       - "8888:8888"
-    networks:
-      - banking-network
+    environment:
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "-u", "config-admin:root", "http://localhost:8888/actuator/health" ]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "-u",
+          "config-admin:root",
+          "http://localhost:8888/actuator/health"
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
+    networks:
+      - banking-network
 
   eureka-service:
     image: eureka-service:latest
@@ -32,13 +44,14 @@ services:
     ports:
       - "8761:8761"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+    depends_on:
+      config-server:
+        condition: service_healthy
     networks:
       - banking-network
-    depends_on:
-      - config-server
 
   auth-service:
     image: auth-service:1.0
@@ -46,19 +59,24 @@ services:
     ports:
       - "8081:8081"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
       DB_HOST: banking-mysql
-      DB_USERNAME: root
-      DB_PASSWORD: Xangay@12
-      EUREKA_URL: http://eureka-service:8761/eureka/
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      banking-mysql:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
     networks:
       - banking-network
-    depends_on:
-      - config-server
-      - eureka-service
-      - banking-mysql
 
   account-service:
     image: account-service:1.0
@@ -66,24 +84,24 @@ services:
     ports:
       - "8082:8082"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
       DB_HOST: banking-mysql
-      DB_USERNAME: root
-      DB_PASSWORD: Xangay@12
-      EUREKA_URL: http://eureka-service:8761/eureka/
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      banking-mysql:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
     networks:
       - banking-network
-      # it fixed which service  run first and which depends on it
-    depends_on:
-     config-server:
-       condition: service_healthy
-     eureka-service:
-       condition: service_started
-
-     banking-mysql:
-       condition: service_started
 
   transaction-service:
     image: transaction-service:1.0
@@ -91,22 +109,24 @@ services:
     ports:
       - "8083:8083"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
       DB_HOST: banking-mysql
-      DB_USERNAME: root
-      DB_PASSWORD: Xangay@12
-      EUREKA_URL: http://eureka-service:8761/eureka/
-    networks:
-      - banking-network
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+
+      EUREKA_URL: ${EUREKA_URL}
     depends_on:
+      banking-mysql:
+        condition: service_started
       config-server:
         condition: service_healthy
       eureka-service:
         condition: service_started
-      banking-mysql:
-        condition: service_started
+    networks:
+      - banking-network
 
   message-service:
     image: message-service:1.0
@@ -114,21 +134,27 @@ services:
     ports:
       - "8084:8084"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
       DB_HOST: banking-mysql
-      DB_USERNAME: root
-      DB_PASSWORD: Xangay@12
-      EUREKA_URL: http://eureka-service:8761/eureka/
-      MAIL_USERNAME: f9653b4c4bea45
-      MAIL_PASSWORD: ff41aa08b838d3
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+
+      EUREKA_URL: ${EUREKA_URL}
+
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    depends_on:
+      banking-mysql:
+        condition: service_started
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
     networks:
       - banking-network
-    depends_on:
-      - config-server
-      - eureka-service
-      - banking-mysql
 
   api-gateway:
     image: api-gateway:1.0
@@ -136,25 +162,30 @@ services:
     ports:
       - "8080:8080"
     environment:
-      CONFIG_SERVER_URL: http://config-server:8888
-      CONFIG_SERVER_USERNAME: config-admin
-      CONFIG_SERVER_PASSWORD: root
-      EUREKA_URL: http://eureka-service:8761/eureka/
+      CONFIG_SERVER_USERNAME: ${CONFIG_SERVER_USERNAME}
+      CONFIG_SERVER_PASSWORD: ${CONFIG_SERVER_PASSWORD}
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+
+      EUREKA_URL: ${EUREKA_URL}
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      account-service:
+        condition: service_started
+      transaction-service:
+        condition: service_started
+      message-service:
+        condition: service_started
     networks:
       - banking-network
-    depends_on:
-      - config-server
-      - eureka-service
-      - auth-service
-      - account-service
-      - transaction-service
-      - message-service
-
-
-volumes:
-  mysql_data:
 
 networks:
   banking-network:
     driver: bridge
 
+volumes:
+  mysql_data:
