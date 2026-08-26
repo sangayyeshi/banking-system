@@ -8,10 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="eureka-service" />
+        <module name="api-gateway" />
         <module name="config-server" />
         <module name="auth-service" />
         <module name="common" />
-        <module name="api-gateway" />
       </profile>
       <profile name="Annotation profile for bankingsystem" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -21,17 +21,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
         <module name="account-service" />
-        <module name="transaction-service" />
-      </profile>
-      <profile name="Annotation profile for message-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-        </processorPath>
         <module name="message-service" />
+        <module name="transaction-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

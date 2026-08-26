@@ -24,7 +24,7 @@ public class NotificationServiceImp implements NotificationService {
                 .subject(notificationRequest.getSubject())
                 .message(notificationRequest.getMessage())
                 .type(notificationRequest.getType())
-                .status(notificationRequest.getStatus())
+                .status(NotificationStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .build();
 

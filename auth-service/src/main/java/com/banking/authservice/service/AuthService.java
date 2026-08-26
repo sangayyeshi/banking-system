@@ -1,6 +1,9 @@
 package com.banking.authservice.service;
 
+import com.banking.authservice.client.MessageClient;
 import com.banking.authservice.dto.LoginRequest;
+import com.banking.authservice.dto.NotificationRequest;
+
 import com.banking.authservice.dto.RegisterRequest;
 import com.banking.authservice.entity.User;
 import com.banking.authservice.repo.UserRepo;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -20,17 +24,28 @@ public class AuthService {
     private final UserRepo userRepository;
     private final PasswordEncoder encoder;
     private final JwtService jwtService;
+    private final MessageClient messageClient;
 
-    public String register( RegisterRequest request) {
-        User newUser = User.builder()
-                .fullName(request.getFullName())
-                .email(request.getEmail())
-                .password(encoder.encode(request.getPassword()))
-                .createdAt(LocalDateTime.now())
-                .role("USER").build();
-        userRepository.save(newUser);
-        return "User registered successfully";
-    }
+public String register(RegisterRequest request) {
+
+    User newUser = User.builder()
+            .fullName(request.getFullName())
+            .email(request.getEmail())
+            .password(encoder.encode(request.getPassword()))
+            .createdAt(LocalDateTime.now())
+            .role("USER")
+            .build();
+    userRepository.save(newUser);
+
+    // after user is saved  Send welcome email
+    NotificationRequest message = NotificationRequest.builder()
+            .recipient(request.getEmail())
+            .subject("Welcome to Banking System")
+            .message("Helo " + request.getFullName() + ",welcome to our Banking System! Your account has been successfully created ")
+            .build();
+    messageClient.sendMessage(message);
+    return "User registered successfully";
+}
 
     public String login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -39,7 +54,6 @@ public class AuthService {
         if (!encoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Wrong password");
         }
-
         return jwtService.generateToken(user.getEmail());
     }
 }
