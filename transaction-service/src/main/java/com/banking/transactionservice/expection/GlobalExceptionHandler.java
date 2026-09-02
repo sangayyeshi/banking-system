@@ -4,11 +4,10 @@ import com.banking.common.expections.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import feign.FeignException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -130,6 +129,27 @@ public class GlobalExceptionHandler  {
         );
     }
 
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ErrorResponse> handleFeignException(
+            FeignException ex,
+            HttpServletRequest request) {
+
+        if (ex.status() == HttpStatus.BAD_REQUEST.value()) {
+            return buildResponse(
+                    HttpStatus.BAD_REQUEST,
+                    "INSUFFICIENT_BALANCE",
+                    "Insufficient balance",
+                    request.getRequestURI()
+            );
+        }
+
+        return buildResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "ACCOUNT_SERVICE_ERROR",
+                "Account service is unavailable",
+                request.getRequestURI()
+        );
+    }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(
             Exception ex,

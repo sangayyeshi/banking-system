@@ -26,20 +26,40 @@ public class AccountServiceImp  implements AccountService {
     @Transactional
     @Override
     public AccountResponse debit(Long id, BigDecimal amount) {
-         int update = accountRepo.debit(id, amount);
-         //checking   the  amount
-        if (update == 0) {
-            throw  new InsufficientBalanceException("Insufficient balance");
+// first get the account by id
+        Account account = accountRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+// check that same id is active
+        if (account.getAccountStatus() != AccountStatus.ACTIVE) {
+            throw new AccountNotActiveException("Account not active");
         }
+// check the  balance from the account id
+        int update = accountRepo.debit(id, amount);
+
+        if (update == 0) {
+            throw new InsufficientBalanceException("Insufficient balance");
+        }
+
         return getAccountById(id);
     }
+
     @Transactional
     @Override
     public AccountResponse credit(Long id, BigDecimal amount) {
-         int update = accountRepo.credit(id, amount);
-         if (update == 0) {
-              throw new AccountNotActiveException("Account not active");
-         }
+
+        Account account = accountRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if (account.getAccountStatus() != AccountStatus.ACTIVE) {
+            throw new AccountNotActiveException("Account not active");
+        }
+
+        int update = accountRepo.credit(id, amount);
+
+        if (update == 0) {
+            throw new RuntimeException("Credit failed");
+        }
+
         return getAccountById(id);
     }
 

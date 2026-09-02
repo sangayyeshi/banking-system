@@ -28,11 +28,11 @@ AccountController {
         return accountService.getAllAccounts();
     }
     @GetMapping("/{id}")
-    public AccountResponse getAccountById(@Valid @PathVariable("id") Long accountId) {
+    public AccountResponse getAccountById( @PathVariable("id") Long accountId) {
         return accountService.getAccountById(accountId);
     }
     @GetMapping("/number/{accountNumber}")
-     public AccountResponse getAccountByAccountNumber(@Valid @PathVariable("accountNumber") String accountNumber) {
+     public AccountResponse getAccountByAccountNumber( @PathVariable("accountNumber") String accountNumber) {
         return accountService.getAccountByAccountNumber(accountNumber);
 
     }
@@ -41,7 +41,7 @@ AccountController {
         return accountService.updateAccount(id,accountRequest);
     }
     @DeleteMapping("/{id}")
-       public void deleteAccountById(@Valid @PathVariable("id") Long accountId) {
+       public void deleteAccountById( @PathVariable("id") Long accountId) {
         accountService.deleteAccountById(accountId);
     }
     @PutMapping("{id}/debit")
