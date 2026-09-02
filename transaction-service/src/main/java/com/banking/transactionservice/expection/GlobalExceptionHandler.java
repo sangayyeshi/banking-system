@@ -1,5 +1,6 @@
 package com.banking.transactionservice.expection;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.banking.common.expections.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler  {
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(
             ResourceNotFoundException ex,
@@ -134,21 +136,49 @@ public class GlobalExceptionHandler  {
             FeignException ex,
             HttpServletRequest request) {
 
-        if (ex.status() == HttpStatus.BAD_REQUEST.value()) {
+        try {
+            String responseBody = ex.contentUTF8();
+
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+            String error = jsonNode.has("error")
+                    ? jsonNode.get("error").asText()
+                    : "ACCOUNT_SERVICE_ERROR";
+
+            String message = jsonNode.has("message")
+                    ? jsonNode.get("message").asText()
+                    : "Account service error";
+
+            HttpStatus status;
+
+            if (ex.status() == HttpStatus.NOT_FOUND.value()) {
+                status = HttpStatus.NOT_FOUND;
+            } else if (ex.status() == HttpStatus.BAD_REQUEST.value()) {
+                status = HttpStatus.BAD_REQUEST;
+            } else if (ex.status() >= 400 && ex.status() < 500) {
+                status = HttpStatus.BAD_REQUEST;
+            } else {
+                status = HttpStatus.SERVICE_UNAVAILABLE;
+                error = "ACCOUNT_SERVICE_ERROR";
+                message = "Account service is unavailable";
+            }
+
             return buildResponse(
-                    HttpStatus.BAD_REQUEST,
-                    "INSUFFICIENT_BALANCE",
-                    "Insufficient balance",
+                    status,
+                    error,
+                    message,
+                    request.getRequestURI()
+            );
+
+        } catch (Exception parsingException) {
+
+            return buildResponse(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "ACCOUNT_SERVICE_ERROR",
+                    "Account service is unavailable",
                     request.getRequestURI()
             );
         }
-
-        return buildResponse(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "ACCOUNT_SERVICE_ERROR",
-                "Account service is unavailable",
-                request.getRequestURI()
-        );
     }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(

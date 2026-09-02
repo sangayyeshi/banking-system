@@ -1,6 +1,7 @@
 package com.banking.transactionservice.service;
 
 import com.banking.common.Core.AccountResponse;
+import com.banking.common.expections.InvalidTransactionException;
 import com.banking.transactionservice.dto.NotificationRequest;
 import com.banking.transactionservice.dto.TransactionRequest;
 import com.banking.transactionservice.dto.TransactionResponse;
@@ -71,9 +72,15 @@ public class TransactionService {
         return map(saved);
     }
 
+
     // 3. Transfer
     public TransactionResponse transfer(TransactionRequest transactionRequest) {
 
+        if (transactionRequest.getReceiverAccountId() == null) {
+            throw new InvalidTransactionException(
+                    "Receiver account ID is required for transfer"
+            );
+        }
         AccountResponse fromAccount = accountClient.getAccountById(
                 transactionRequest.getAccountId()
         );
@@ -83,11 +90,12 @@ public class TransactionService {
         );
 
         if (fromAccount.getId().equals(toAccount.getId())) {
-            throw new IllegalArgumentException(
+            throw new InvalidTransactionException(
                     "Cannot transfer money to the same account"
             );
         }
 
+        // Debit sender
         accountClient.debit(
                 fromAccount.getId(),
                 transactionRequest.getAmount()
@@ -95,6 +103,7 @@ public class TransactionService {
 
         try {
 
+            // Credit receiver
             accountClient.credit(
                     toAccount.getId(),
                     transactionRequest.getAmount()
@@ -102,6 +111,7 @@ public class TransactionService {
 
         } catch (Exception e) {
 
+            // Rollback sender debit if receiver credit fails
             accountClient.credit(
                     fromAccount.getId(),
                     transactionRequest.getAmount()
@@ -110,6 +120,7 @@ public class TransactionService {
             throw e;
         }
 
+        // Save transfer transaction
         Transaction transaction = Transaction.builder()
                 .accountId(fromAccount.getId())
                 .receiverAccountId(toAccount.getId())
@@ -121,14 +132,30 @@ public class TransactionService {
 
         Transaction saved = transactionRepo.save(transaction);
 
+        // Send notification to sender
+        sendTransferSenderNotification(
+                fromAccount,
+                toAccount,
+                transactionRequest
+        );
+
+        // Send notification to receiver
+        sendTransferReceiverNotification(
+                fromAccount,
+                toAccount,
+                transactionRequest
+        );
+
         return map(saved);
     }
+
+
 
     // 4. Get transaction history by account
     public List<TransactionResponse> getTransactionsByAccountId(Long accountId) {
 
         return transactionRepo
-                .findByAccountIdOrReceiverAccountId(accountId, accountId)
+                .findByAccountIdOrReceiverAccountIdOrderByCreatedAtDesc(accountId, accountId)
                 .stream()
                 .map(this::map)
                 .toList();
@@ -192,4 +219,56 @@ public class TransactionService {
 
         messageClient.sendNotification(notificationRequest);
     }
+
+
+    private void sendTransferSenderNotification(
+            AccountResponse sender,
+            AccountResponse receiver,
+            TransactionRequest request) {
+
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .recipient(sender.getEmail())
+                .subject("Transfer Successful")
+                .message(
+                        "Dear " + sender.getAccountHolderName() + ",\n\n" +
+                                "Your transfer was successful.\n\n" +
+                                "Amount: " + request.getAmount() + "\n" +
+                                "From Account: " + sender.getAccountNumber() + "\n" +
+                                "To Account: " + receiver.getAccountNumber() + "\n" +
+                                "Description: " + request.getDescription() + "\n" +
+                                "Remaining Balance: " + sender.getBalance() + "\n\n" +
+                                "Thank you for using our banking service."
+                )
+                .type("EMAIL")
+                .build();
+
+        messageClient.sendNotification(notificationRequest);
+    }
+
+
+    private void sendTransferReceiverNotification(
+            AccountResponse sender,
+            AccountResponse receiver,
+            TransactionRequest request) {
+
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .recipient(receiver.getEmail())
+                .subject("Money Received")
+                .message(
+                        "Dear " + receiver.getAccountHolderName() + ",\n\n" +
+                                "You have received a transfer.\n\n" +
+                                "Amount: " + request.getAmount() + "\n" +
+                                "From Account: " + sender.getAccountNumber() + "\n" +
+                                "To Account: " + receiver.getAccountNumber() + "\n" +
+                                "Description: " + request.getDescription() + "\n" +
+                                "New Balance: " + receiver.getBalance() + "\n\n" +
+                                "Thank you for using our banking service."
+                )
+                .type("EMAIL")
+                .build();
+
+        messageClient.sendNotification(notificationRequest);
+    }
+
+
 }

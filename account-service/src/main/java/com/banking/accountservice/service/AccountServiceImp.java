@@ -8,6 +8,8 @@ import com.banking.accountservice.repo.AccountRepo;
 import com.banking.common.Core.AccountUpdateRequest;
 import com.banking.common.expections.AccountNotActiveException;
 import com.banking.common.expections.InsufficientBalanceException;
+import com.banking.common.expections.ResourceNotFoundException;
+import com.banking.common.expections.TransactionFailedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ public class AccountServiceImp  implements AccountService {
     public AccountResponse debit(Long id, BigDecimal amount) {
 // first get the account by id
         Account account = accountRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with id " + id));
 // check that same id is active
         if (account.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new AccountNotActiveException("Account not active");
@@ -48,7 +50,7 @@ public class AccountServiceImp  implements AccountService {
     public AccountResponse credit(Long id, BigDecimal amount) {
 
         Account account = accountRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found  with id " + id));
 
         if (account.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new AccountNotActiveException("Account not active");
@@ -57,9 +59,8 @@ public class AccountServiceImp  implements AccountService {
         int update = accountRepo.credit(id, amount);
 
         if (update == 0) {
-            throw new RuntimeException("Credit failed");
+            throw new TransactionFailedException("Credit failed");
         }
-
         return getAccountById(id);
     }
 
@@ -105,17 +106,20 @@ public class AccountServiceImp  implements AccountService {
 
     @Override
     public AccountResponse getAccountById(Long id) {
-        return map(accountRepo.findById(id).orElseThrow());
+        return map(accountRepo.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException("Account not found with id " + id)));
     }
 
     @Override
     public AccountResponse getAccountByEmail(String email) {
-        return map(accountRepo.findByemail(email).orElseThrow());
+        return map(accountRepo.findByemail(email).orElseThrow(()
+                -> new ResourceNotFoundException("Account not found with email " + email)));
     }
 
     @Override
     public AccountResponse getAccountByAccountNumber(String accountNumber) {
-        return map(accountRepo.findByaccountNumber(accountNumber).orElseThrow());
+        return map(accountRepo.findByaccountNumber(accountNumber).orElseThrow(()
+                -> new ResourceNotFoundException("Account not found with accountNumber " + accountNumber)));
     }
 
     @Override
@@ -126,7 +130,7 @@ public class AccountServiceImp  implements AccountService {
     @Override
     public AccountResponse updateAccount(Long id, AccountUpdateRequest accountRequest) {
         Account account = accountRepo.findById(id).orElseThrow(
-                ()-> new RuntimeException("account not found"));
+                ()-> new ResourceNotFoundException( "account not found  with id " + id));
         account.setBalance(accountRequest.getAmount());
         Account updatedAccount = accountRepo.save(account);
         return map(updatedAccount);
