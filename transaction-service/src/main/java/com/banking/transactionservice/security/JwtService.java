@@ -1,25 +1,12 @@
-package com.banking.authservice.security;
+package com.banking.transactionservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 @Service
 public class JwtService {
-
     private final String JWT_SECRET = "mysecretkeymysecretkeymysecretkey12345";
-
-    public String generateToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24))
-                .signWith(SignatureAlgorithm.HS256, JWT_SECRET.getBytes())
-                .compact();
-    }
 
     public String extractUsername(String token) {
         Claims claims = Jwts.parser()
