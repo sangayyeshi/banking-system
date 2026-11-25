@@ -12,3 +12,9 @@ spring:
     config:
       username: ${CONFIG_SERVER_USERNAME:config-admin}
       password: ${CONFIG_SERVER_PASSWORD:root}
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

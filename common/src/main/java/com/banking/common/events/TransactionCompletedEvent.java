@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionCompletedEvent {
+    // event sender
     private Long transactionId;
 
     private String transactionType;
