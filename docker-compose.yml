@@ -10,6 +10,8 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+    networks:
+          - banking-network
   Kafka:
           image: apache/kafka:4.1.1
           container_name: banking-kafka
@@ -38,7 +40,9 @@ services:
             KAFKA_NUM_PARTITIONS: 3
 
           networks:
-            - banking-network
+            banking-network:
+              aliases:
+                - kafka
 
 
 
@@ -148,12 +152,15 @@ services:
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
 
       EUREKA_URL: ${EUREKA_URL}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       banking-mysql:
         condition: service_started
       config-server:
         condition: service_healthy
       eureka-service:
+        condition: service_started
+      Kafka:
         condition: service_started
     networks:
       - banking-network
@@ -173,6 +180,7 @@ services:
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
 
       EUREKA_URL: ${EUREKA_URL}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
@@ -182,6 +190,8 @@ services:
       config-server:
         condition: service_healthy
       eureka-service:
+        condition: service_started
+      Kafka:
         condition: service_started
     networks:
       - banking-network
