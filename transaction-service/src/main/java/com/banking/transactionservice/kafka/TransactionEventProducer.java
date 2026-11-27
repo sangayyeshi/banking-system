@@ -21,22 +21,34 @@ public class TransactionEventProducer {
     private String topic;
 
     public void publishTransactionEvent(TransactionCompletedEvent event) {
+        publishTransactionEvent(topic, event);
+    }
 
-        kafkaTemplate.send(topic, event.getTransactionId().toString(), event)
-                .whenComplete((result, exception) -> {
-                    if (exception == null) {
-                        log.info(
-                                "Transaction event published successfully. Transaction ID: {}",
-                                event.getTransactionId()
-                        );
-                    } else {
-                        log.error(
-                                "Failed to publish transaction event. Transaction ID: {}",
-                                event.getTransactionId(),
-                                exception
-                        );
-                    }
-                });
+    public void publishTransactionEvent(
+            String targetTopic,
+            TransactionCompletedEvent event) {
+
+        kafkaTemplate.send(
+                targetTopic,
+                event.getTransactionId().toString(),
+                event
+        ).whenComplete((result, exception) -> {
+
+            if (exception == null) {
+                log.info(
+                        "Event published successfully. Topic: {}, Transaction ID: {}",
+                        targetTopic,
+                        event.getTransactionId()
+                );
+            } else {
+                log.error(
+                        "Failed to publish event. Topic: {}, Transaction ID: {}",
+                        targetTopic,
+                        event.getTransactionId(),
+                        exception
+                );
+            }
+        });
     }
 }
 
